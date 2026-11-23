@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>TejoGest Pro - Spring Boot (Gestion de Clientes)</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f1f5f9; margin: 0; padding: 24px; }
+        .contenedor { max-width: 1000px; margin: auto; background: #ffffff; padding: 28px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        h1 { color: #0f172a; margin-top: 0; border-bottom: 3px solid #d97706; padding-bottom: 12px; font-size: 24px; }
+        .subtitulo { color: #64748b; margin-top: -6px; margin-bottom: 20px; font-size: 14px; }
+        .alerta-ok { background: #dcfce7; color: #166534; padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-weight: 500; }
+        .alerta-err { background: #fee2e2; color: #991b1b; padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-weight: 500; }
+        form { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 26px; background: #f8fafc; padding: 18px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .campo { display: flex; flex-direction: column; }
+        .campo.completo { grid-column: span 2; }
+        label { font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 4px; }
+        input { padding: 9px 11px; border: 1px solid #cbd5e1; border-radius: 5px; font-size: 14px; }
+        .error-campo { color: #dc2626; font-size: 12px; margin-top: 4px; }
+        .botones { grid-column: span 2; display: flex; gap: 10px; margin-top: 4px; }
+        button { background: #d97706; color: #fff; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #b45309; }
+        a.btn-cancelar { background: #64748b; color: #fff; padding: 10px 16px; text-decoration: none; border-radius: 5px; font-size: 14px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 11px; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 14px; }
+        th { background: #1e293b; color: #ffffff; }
+        .accion-editar { color: #2563eb; text-decoration: none; font-weight: bold; margin-right: 12px; }
+        .accion-eliminar { color: #dc2626; text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+<div class="contenedor">
+    <h1>TejoGest Pro - Modulo Web de Clientes</h1>
+    <p class="subtitulo">Desarrollado con Java + Spring Boot + Spring Data JPA + Thymeleaf + MySQL</p>
+
+    <div th:if="${mensajeExito}" class="alerta-ok" th:text="${mensajeExito}"></div>
+    <div th:if="${mensajeError}" class="alerta-err" th:text="${mensajeError}"></div>
+
+    <form th:action="@{/clientes/guardar}" th:object="${cliente}" method="post">
+        <input type="hidden" th:field="*{idCliente}"/>
+
+        <div class="campo">
+            <label>Documento de Identidad</label>
+            <input type="text" th:field="*{documento}" placeholder="Ej: 1001001006"/>
+            <span class="error-campo" th:if="${#fields.hasErrors('documento')}" th:errors="*{documento}"></span>
+        </div>
+
+        <div class="campo">
+            <label>Nombre</label>
+            <input type="text" th:field="*{nombre}" placeholder="Ej: Cristian"/>
+            <span class="error-campo" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></span>
+        </div>
+
+        <div class="campo">
+            <label>Apellido</label>
+            <input type="text" th:field="*{apellido}" placeholder="Ej: Chaves"/>
+            <span class="error-campo" th:if="${#fields.hasErrors('apellido')}" th:errors="*{apellido}"></span>
+        </div>
+
+        <div class="campo">
+            <label>Telefono</label>
+            <input type="text" th:field="*{telefono}" placeholder="Ej: 3001234567"/>
+            <span class="error-campo" th:if="${#fields.hasErrors('telefono')}" th:errors="*{telefono}"></span>
+        </div>
+
+        <div class="campo completo">
+            <label>Correo Electronico</label>
+            <input type="text" th:field="*{correo}" placeholder="Ej: cristian@tejogestpro.com"/>
+            <span class="error-campo" th:if="${#fields.hasErrors('correo')}" th:errors="*{correo}"></span>
+        </div>
+
+        <div class="botones">
+            <button type="submit" th:text="${cliente.idCliente != null} ? 'Actualizar Cliente' : 'Registrar Cliente'"></button>
+            <a th:if="${cliente.idCliente != null}" th:href="@{/clientes}" class="btn-cancelar">Cancelar edicion</a>
+        </div>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Documento</th>
+                <th>Nombre Completo</th>
+                <th>Telefono</th>
+                <th>Correo</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="c : ${listaClientes}">
+                <td th:text="${c.idCliente}"></td>
+                <td th:text="${c.documento}"></td>
+                <td th:text="${c.nombre + ' ' + c.apellido}"></td>
+                <td th:text="${c.telefono}"></td>
+                <td th:text="${c.correo}"></td>
+                <td>
+                    <a class="accion-editar" th:href="@{/clientes/editar/{id}(id=${c.idCliente})}">Editar</a>
+                    <a class="accion-eliminar" th:href="@{/clientes/eliminar/{id}(id=${c.idCliente})}"
+                       onclick="return confirm('Seguro que deseas eliminar este cliente?');">Eliminar</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
